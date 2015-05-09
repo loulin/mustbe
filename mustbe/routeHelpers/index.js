@@ -11,6 +11,9 @@ function paramsFromRequest(req, config, activity){
   return params;
 }
 
+function nextCallback(req, res, next) {
+  next();
+}
 
 // Route Helpers
 // -------------
@@ -23,9 +26,8 @@ RouteHelpers.prototype.authenticated = function(authCB, notAuthCB){
   var that = this;
   var config = this.config;
 
-  if (!notAuthCB){
-    notAuthCB = this.config.routeHelpers.notAuthenticated;
-  }
+  authCB = authCB || nextCallback;
+  notAuthCB = notAuthCB || this.config.routeHelpers.notAuthenticated;
 
   function handler(req, res, next){
     var args = Array.prototype.slice.apply(arguments);
@@ -75,14 +77,14 @@ RouteHelpers.prototype._handleAuthorization = function(activity, authcb, notauth
   var that = this;
   var config = this.config;
 
-  if (!notauthcb){
-    notauthcb = config.routeHelpers.notAuthorized;
-  }
-
-  if (!authcb){
+  if(typeof activity === 'function') {
+    notauthcb = authcb;
     authcb = activity;
     activity = undefined;
   }
+
+  authcb = authcb || nextCallback;
+  notauthcb = notauthcb || config.routeHelpers.notAuthorized;
 
   return function(req, res, next){
     var handlerArgs = Array.prototype.slice.apply(arguments);
